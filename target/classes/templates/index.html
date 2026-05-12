@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Film Arşivi | Ana Sayfa</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: #1c1c1c !important; padding: 0.8rem 0; }
+        .search-input { border-radius: 20px 0 0 20px; border: none; padding-left: 20px; height: 45px; }
+        .search-btn { border-radius: 0 20px 20px 0; font-weight: bold; height: 45px; }
+        .sidebar { background: white; border-radius: 15px; padding: 20px; position: sticky; top: 20px; }
+        .category-link { display: flex; align-items: center; padding: 10px 15px; text-decoration: none; color: #444; border-radius: 10px; transition: 0.2s; }
+        .category-link:hover { background: #f8f9fa; color: #0d6efd; }
+        .film-card { border: none; border-radius: 15px; overflow: hidden; background: white; transition: 0.3s; height: 100%; }
+        .card-img-top { height: 380px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow">
+    <div class="container">
+        <a class="navbar-brand fw-bold fs-3" href="/"><i class="fas fa-film me-2"></i>FİLM ARŞİVİ</a>
+
+        <div class="mx-auto d-none d-lg-block" style="width: 50%;">
+            <form action="/" method="get" class="d-flex">
+                <input class="form-control search-input shadow-none" type="search" name="search" placeholder="Film veya tür ara..." th:value="${param.search}">
+                <button class="btn btn-warning search-btn px-4" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
+
+        <div class="navbar-nav align-items-center ms-auto">
+            <div sec:authorize="isAuthenticated()" class="d-flex align-items-center">
+                <span class="text-white-50 me-3 small">Selam, <b class="text-white" th:text="${#authentication.name}">İrem</b></span>
+                <a href="/logout" class="btn btn-danger btn-sm px-3 fw-bold rounded-pill">Çıkış</a>
+            </div>
+            <div sec:authorize="!isAuthenticated()" class="d-flex gap-2">
+                <a href="/login" class="btn btn-outline-light btn-sm px-3 fw-bold rounded-pill">Giriş</a>
+                <a href="/register" class="btn btn-warning btn-sm px-3 fw-bold rounded-pill text-dark">Kayıt</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <div class="sidebar shadow-sm">
+                <h5 class="fw-bold mb-4">Kategoriler</h5>
+                <nav>
+                    <a href="/" class="category-link"><i class="fas fa-border-all me-2"></i> Tümü</a>
+                    <a href="/?kategori=Aksiyon" class="category-link"><i class="fas fa-fire me-2 text-danger"></i> Aksiyon</a>
+                    <a href="/?kategori=Drama" class="category-link"><i class="fas fa-masks-theater me-2 text-warning"></i> Drama</a>
+                    <a href="/?kategori=Bilim Kurgu" class="category-link"><i class="fas fa-rocket me-2 text-info"></i> Bilim Kurgu</a>
+                    <a href="/?kategori=Diğer" class="category-link"><i class="fas fa-ellipsis-h me-2"></i> Diğer</a>
+                </nav>
+                <div sec:authorize="hasRole('ADMIN')" class="mt-4 pt-4 border-top">
+                    <a href="/ekle" class="btn btn-primary w-100 fw-bold rounded-3">Yeni Film Ekle</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                <div th:each="f : ${filmler}" class="col">
+                    <div class="card film-card shadow-sm">
+                        <img th:src="@{'/film/resim/' + ${f.id}}" class="card-img-top" alt="Afiş">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold" th:text="${f.title}">Başlık</h5>
+                            <p class="text-muted small mb-3" th:text="${f.genre}">Tür</p>
+                            <div class="d-grid gap-2">
+                                <a th:href="@{'/film/' + ${f.id}}" class="btn btn-outline-dark btn-sm rounded-pill">Detayları Gör</a>
+                                <div sec:authorize="hasRole('ADMIN')" class="d-flex gap-2">
+                                    <a th:href="@{'/film/duzenle/' + ${f.id}}" class="btn btn-success btn-sm w-50 rounded-pill">Düzenle</a>
+                                    <a th:href="@{'/film/sil/' + ${f.id}}" class="btn btn-danger btn-sm w-50 rounded-pill" onclick="return confirm('Silinsin mi?')">Sil</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

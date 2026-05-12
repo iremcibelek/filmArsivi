@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${film.title}">Film Detayı</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: #1c1c1c !important; }
+        .poster-img { width: 100%; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .info-card { background: white; border-radius: 15px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .comment-item { background: white; border-left: 5px solid #0d6efd; border-radius: 10px; margin-bottom: 12px; padding: 15px; }
+        .film-meta { font-size: 1.1rem; color: #555; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #dee2e6; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm py-3">
+    <div class="container">
+        <a class="navbar-brand fw-bold fs-3" href="/"><i class="fas fa-film me-2 text-warning"></i>FİLM ARŞİVİ</a>
+        <div class="navbar-nav ms-auto align-items-center">
+            <div sec:authorize="isAuthenticated()">
+                <span class="text-white-50 me-3 small">Hoş geldin, <b class="text-white" th:text="${#authentication.name}">İrem</b></span>
+                <a href="/logout" class="btn btn-danger btn-sm rounded-pill px-3">Çıkış</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5 mb-5">
+    <div class="row g-5">
+        <div class="col-lg-4">
+            <img th:src="@{'/film/resim/' + ${film.id}}" class="poster-img" alt="Afiş">
+        </div>
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h1 th:text="${film.title}" class="fw-bold display-4">Film Adı</h1>
+                <div class="badge bg-warning text-dark fs-4 rounded-pill px-4 shadow-sm">
+                    <i class="fas fa-star me-1"></i> <span th:text="${#numbers.formatDecimal(film.getAverageRating(),1,1)}">0.0</span>
+                </div>
+            </div>
+
+            <div class="film-meta">
+                <strong>Yönetmen:</strong> <span th:text="${film.director}">-</span> |
+                <strong>Yıl:</strong> <span th:text="${film.year}">-</span> |
+                <strong>Tür:</strong> <span th:text="${film.genre}">-</span>
+            </div>
+
+            <div class="card info-card p-4 mb-4">
+                <h5 class="fw-bold mb-3 text-primary">Film Özeti</h5>
+                <p th:text="${film.description}" class="text-secondary lh-lg"></p>
+            </div>
+
+            <div sec:authorize="isAuthenticated()" class="card info-card p-4 mb-4 border-warning">
+                <h6 class="fw-bold"><i class="fas fa-star-half-alt me-2"></i>Filmi Puanla</h6>
+                <form th:action="@{'/film/' + ${film.id} + '/islem'}" method="post" class="d-flex gap-2 mt-2">
+                    <select name="ratingValue" class="form-select w-50 fw-bold border-2">
+                        <option value="5" th:selected="${userRatingValue == 5}">⭐⭐⭐⭐⭐ (5 Puan)</option>
+                        <option value="4" th:selected="${userRatingValue == 4}">⭐⭐⭐⭐ (4 Puan)</option>
+                        <option value="3" th:selected="${userRatingValue == 3}">⭐⭐⭐ (3 Puan)</option>
+                        <option value="2" th:selected="${userRatingValue == 2}">⭐⭐ (2 Puan)</option>
+                        <option value="1" th:selected="${userRatingValue == 1}">⭐ (1 Puan)</option>
+                    </select>
+                    <button type="submit" class="btn btn-warning fw-bold px-4 shadow-sm">Puanla</button>
+                </form>
+            </div>
+
+            <div sec:authorize="isAuthenticated()" class="card info-card p-4 mb-4 border-primary">
+                <h6 class="fw-bold"><i class="fas fa-comment-dots me-2"></i>Yorum Yaz</h6>
+                <form th:action="@{'/film/' + ${film.id} + '/islem'}" method="post">
+                    <textarea name="content" class="form-control mb-3" rows="3" placeholder="Bu film hakkındaki düşüncelerin..." required></textarea>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold rounded-pill">Yorumu Paylaş</button>
+                </form>
+            </div>
+
+            <div class="mt-5">
+                <h4 class="fw-bold mb-4">Yorumlar</h4>
+                <div th:each="c : ${film.comments}" class="comment-item shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong class="text-primary"><i class="fas fa-user-circle me-1"></i> <span th:text="${c.user.username}">User</span></strong>
+                        <div th:if="${#authentication.name == c.user.username or #authorization.expression('hasRole(''ADMIN'')')}">
+                            <a th:href="@{'/yorum/sil/' + ${c.id}}" class="btn btn-link text-danger btn-sm text-decoration-none" onclick="return confirm('Silinsin mi?')">
+                                <i class="fas fa-trash"></i> Sil
+                            </a>
+                        </div>
+                    </div>
+                    <p th:text="${c.content}" class="mb-0 mt-2 text-dark"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
